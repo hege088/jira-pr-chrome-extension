@@ -120,7 +120,7 @@
 
   function buildMemeHtml(memeUrl, avatarUrl) {
     const avatarOverlay = avatarUrl
-      ? `<img src="${avatarUrl}" style="position:absolute;top:22%;left:59%;width:20%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.6);box-shadow:0 2px 8px rgba(0,0,0,0.4);pointer-events:none;" />`
+      ? `<img src="${avatarUrl}" style="position:absolute;top:18%;left:63%;width:26%;height:auto;aspect-ratio:1;object-fit:cover;pointer-events:none;" />`
       : '';
     return `<div style="position:relative;display:inline-block;max-width:320px;width:100%;margin:10px auto 0;">` +
       `<img src="${memeUrl}" style="display:block;width:100%;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.3);" />` +
@@ -197,7 +197,7 @@
       lineHeight: '1.4', letterSpacing: '0.5px',
       textShadow: '0 2px 10px rgba(0,0,0,0.3)',
     });
-    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${message}${buildMemeHtml(memeUrl, avatarUrl)}`;
+    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${buildMemeHtml(memeUrl, avatarUrl)}<div style="margin-top:10px">${message}</div>`;
     overlay.appendChild(banner);
     document.body.appendChild(overlay);
 
