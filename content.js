@@ -95,6 +95,39 @@
     return '';
   }
 
+  function getUserAvatarUrl() {
+    const selectors = [
+      '[data-testid="atlassian-navigation--profile-button"] img',
+      '[data-testid="ak-spotlight-target-profile-icon-button"] img',
+      'button[aria-label="Your profile and settings"] img',
+      'button[aria-label="Dein Profil und deine Einstellungen"] img',
+      '[data-testid="app-navigation-avatar"] img',
+      'div[role="navigation"] img[src*="avatar"]',
+      'img[data-testid="profileAvatar"]',
+      'nav img[src*="avatar"]',
+      'header img[src*="avatar"]',
+    ];
+    for (const sel of selectors) {
+      const img = document.querySelector(sel);
+      if (img && img.src) return img.src;
+    }
+    const allImgs = document.querySelectorAll('img[src*="avatar"], img[src*="atl-paas.net"]');
+    for (const img of allImgs) {
+      if (img.src && (img.width <= 48 || img.naturalWidth <= 128)) return img.src;
+    }
+    return null;
+  }
+
+  function buildMemeHtml(memeUrl, avatarUrl) {
+    const avatarOverlay = avatarUrl
+      ? `<img src="${avatarUrl}" style="position:absolute;top:22%;left:59%;width:20%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.6);box-shadow:0 2px 8px rgba(0,0,0,0.4);pointer-events:none;" />`
+      : '';
+    return `<div style="position:relative;display:inline-block;max-width:320px;width:100%;margin:10px auto 0;">` +
+      `<img src="${memeUrl}" style="display:block;width:100%;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.3);" />` +
+      avatarOverlay +
+      `</div>`;
+  }
+
   function showToast(message, isError) {
     let toast = document.getElementById(TOAST_ID);
     if (toast) toast.remove();
@@ -131,6 +164,9 @@
     const existing = document.getElementById(CELEBRATION_ID);
     if (existing) existing.remove();
 
+    const memeUrl = chrome.runtime.getURL('icons/meme.png');
+    const avatarUrl = getUserAvatarUrl();
+
     const overlay = document.createElement('div');
     overlay.id = CELEBRATION_ID;
     Object.assign(overlay.style, {
@@ -161,7 +197,7 @@
       lineHeight: '1.4', letterSpacing: '0.5px',
       textShadow: '0 2px 10px rgba(0,0,0,0.3)',
     });
-    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${message}<img src="${chrome.runtime.getURL('icons/meme.png')}" style="display:block;max-width:320px;width:100%;border-radius:10px;margin:10px auto 0;box-shadow:0 2px 12px rgba(0,0,0,0.3);" />`;
+    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${message}${buildMemeHtml(memeUrl, avatarUrl)}`;
     overlay.appendChild(banner);
     document.body.appendChild(overlay);
 
