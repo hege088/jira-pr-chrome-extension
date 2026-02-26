@@ -13,7 +13,7 @@ A Chrome extension that adds a "Create PR" button on Jira issue pages. Clicking 
 
 ## Usage
 
-1. Navigate to any Jira issue page (e.g. `https://prewave.atlassian.net/browse/PROJ-123`)
+1. Navigate to any Jira issue page
 2. A blue **Create PR** button appears in the bottom-left corner
 3. Click it — the extension extracts the issue key, summary, and description, then dispatches a `repository_dispatch` event to your GitHub repo
 4. The GitHub Actions workflow picks it up and triggers the AI agent to create a PR
