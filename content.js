@@ -161,7 +161,7 @@
       lineHeight: '1.4', letterSpacing: '0.5px',
       textShadow: '0 2px 10px rgba(0,0,0,0.3)',
     });
-    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${message}<div style="font-size:13px;opacity:0.8;margin-top:6px;font-weight:500">AI magic is happening...</div>`;
+    banner.innerHTML = `<div style="font-size:36px;margin-bottom:6px">&#10024; &#127881; &#128640; &#127881; &#10024;</div>${message}<img src="${chrome.runtime.getURL('icons/meme.png')}" style="display:block;max-width:320px;width:100%;border-radius:10px;margin:10px auto 0;box-shadow:0 2px 12px rgba(0,0,0,0.3);" />`;
     overlay.appendChild(banner);
     document.body.appendChild(overlay);
 
@@ -344,38 +344,105 @@
         rk.trail.unshift({ x: rk.x, y: rk.y });
         if (rk.trail.length > rk.trailLen) rk.trail.pop();
 
-        // Rocket trail
+        const angle = Math.atan2(rk.vy, rk.vx);
+        const rLen = 22;
+        const rWid = 7;
+
+        // Exhaust flame trail (widens behind the rocket)
         for (let t = 0; t < rk.trail.length; t++) {
           const tp = rk.trail[t];
           const a = 1 - t / rk.trail.length;
+          const flameW = (1 - a) * 6 + 2;
           ctx.save();
-          ctx.globalAlpha = a * 0.8;
-          ctx.fillStyle = '#fbbf24';
+          ctx.globalAlpha = a * 0.7;
+          ctx.fillStyle = t < rk.trail.length * 0.4 ? '#fff' : t < rk.trail.length * 0.7 ? '#fbbf24' : '#f97316';
           ctx.beginPath();
-          ctx.arc(tp.x, tp.y, 2.5 * a, 0, Math.PI * 2);
+          ctx.arc(tp.x, tp.y, flameW * a, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
 
-        // Rocket head glow
+        // Rocket body
         ctx.save();
-        const rGrad = ctx.createRadialGradient(rk.x, rk.y, 0, rk.x, rk.y, 8);
-        rGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
-        rGrad.addColorStop(0.5, 'rgba(251,191,36,0.4)');
-        rGrad.addColorStop(1, 'rgba(251,191,36,0)');
-        ctx.fillStyle = rGrad;
-        ctx.fillRect(rk.x - 8, rk.y - 8, 16, 16);
+        ctx.translate(rk.x, rk.y);
+        ctx.rotate(angle - Math.PI / 2);
+
+        // Nose cone (pointed tip)
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(0, -rLen);
+        ctx.lineTo(-rWid * 0.6, -rLen * 0.45);
+        ctx.lineTo(rWid * 0.6, -rLen * 0.45);
+        ctx.closePath();
+        ctx.fill();
+
+        // Main body
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fillRect(-rWid * 0.5, -rLen * 0.45, rWid, rLen * 0.7);
+
+        // Body stripe
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(-rWid * 0.5, -rLen * 0.15, rWid, rLen * 0.15);
+
+        // Window (porthole)
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.arc(0, -rLen * 0.28, rWid * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#bfdbfe';
+        ctx.beginPath();
+        ctx.arc(-rWid * 0.06, -rLen * 0.3, rWid * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Fins (left and right)
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(-rWid * 0.5, rLen * 0.25);
+        ctx.lineTo(-rWid * 1.0, rLen * 0.4);
+        ctx.lineTo(-rWid * 0.5, rLen * 0.1);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(rWid * 0.5, rLen * 0.25);
+        ctx.lineTo(rWid * 1.0, rLen * 0.4);
+        ctx.lineTo(rWid * 0.5, rLen * 0.1);
+        ctx.closePath();
+        ctx.fill();
+
+        // Exhaust nozzle
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(-rWid * 0.35, rLen * 0.25, rWid * 0.7, rLen * 0.08);
+
+        // Active flame from nozzle
+        const flicker = rand(0.8, 1.2);
+        const flameLen = rLen * 0.5 * flicker;
+        const flameGrad = ctx.createLinearGradient(0, rLen * 0.33, 0, rLen * 0.33 + flameLen);
+        flameGrad.addColorStop(0, '#fff');
+        flameGrad.addColorStop(0.2, '#fbbf24');
+        flameGrad.addColorStop(0.6, '#f97316');
+        flameGrad.addColorStop(1, 'rgba(239,68,68,0)');
+        ctx.fillStyle = flameGrad;
+        ctx.beginPath();
+        ctx.moveTo(-rWid * 0.35, rLen * 0.33);
+        ctx.quadraticCurveTo(-rWid * 0.5 * flicker, rLen * 0.33 + flameLen * 0.6, 0, rLen * 0.33 + flameLen);
+        ctx.quadraticCurveTo(rWid * 0.5 * flicker, rLen * 0.33 + flameLen * 0.6, rWid * 0.35, rLen * 0.33);
+        ctx.closePath();
+        ctx.fill();
+
         ctx.restore();
 
-        // Emit sparks while flying
+        // Emit sparks from exhaust
         rk.sparkTimer++;
         if (rk.sparkTimer % 2 === 0) {
+          const tailX = rk.x + Math.cos(angle + Math.PI) * rLen * 0.3;
+          const tailY = rk.y + Math.sin(angle + Math.PI) * rLen * 0.3;
           particles.push({
-            x: rk.x + rand(-2, 2), y: rk.y + rand(0, 4),
-            vx: rand(-1, 1), vy: rand(0, 2),
-            gravity: 0.02, drag: 0.98, size: rand(1, 2.5),
-            color: pick(['#fbbf24', '#f97316', '#fff']),
-            opacity: 1, life: rand(15, 30), age: 0, type: 'spark', trail: [], trailLen: 0,
+            x: tailX + rand(-3, 3), y: tailY + rand(-2, 2),
+            vx: Math.cos(angle + Math.PI) * rand(1, 3) + rand(-1, 1),
+            vy: Math.sin(angle + Math.PI) * rand(1, 3) + rand(-0.5, 0.5),
+            gravity: 0.02, drag: 0.97, size: rand(1, 3),
+            color: pick(['#fbbf24', '#f97316', '#ef4444', '#fff']),
+            opacity: 1, life: rand(12, 25), age: 0, type: 'spark', trail: [], trailLen: 3,
           });
         }
 
