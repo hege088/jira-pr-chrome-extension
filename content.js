@@ -120,7 +120,7 @@
 
   function buildMemeHtml(memeUrl, avatarUrl) {
     const avatarOverlay = avatarUrl
-      ? `<img src="${avatarUrl}" style="position:absolute;top:18%;left:63%;width:26%;height:auto;aspect-ratio:1;object-fit:cover;pointer-events:none;" />`
+      ? `<img src="${avatarUrl}" style="position:absolute;top:14%;left:60%;width:35%;height:auto;aspect-ratio:1;object-fit:cover;pointer-events:none;" />`
       : '';
     return `<div style="position:relative;display:inline-block;max-width:320px;width:100%;margin:10px auto 0;">` +
       `<img src="${memeUrl}" style="display:block;width:100%;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.3);" />` +
